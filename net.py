@@ -29,9 +29,10 @@ class MultiDigitsNet(torch.nn.Module):
         self.max_pool1 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
         self.max_pool2 = torch.nn.MaxPool2d(kernel_size=2, stride=1)
         
-        self.relu = torch.nn.Tanh()
+        self.relu = torch.nn.ReLU()
         self.softmax = torch.nn.Softmax()
-    
+        self.dropout2d = torch.nn.Dropout2d(p=0.2)#Input (N, C, H, W)
+        self.dropout = torch.nn.Dropout(p=0.2)
     def forward(self, x):
         """
         The shape of input of net is 3*64*64.
@@ -47,16 +48,26 @@ class MultiDigitsNet(torch.nn.Module):
         """
     
         x = self.max_pool1(self.relu(self.conv1(x)))
+        x = self.dropout2d(x)
         x = self.max_pool2(self.relu(self.conv2(x)))
+        x = self.dropout2d(x)
         x = self.max_pool1(self.relu(self.conv3(x)))
+        x = self.dropout2d(x)
         x = self.max_pool2(self.relu(self.conv4(x)))
+        x = self.dropout2d(x)
         x = self.max_pool1(self.relu(self.conv5(x)))
+        x = self.dropout2d(x)
         x = self.max_pool2(self.relu(self.conv6(x)))      
+        x = self.dropout2d(x)
         x = self.max_pool1(self.relu(self.conv7(x)))
+        x = self.dropout2d(x)
         x = self.max_pool2(self.relu(self.conv8(x)))
+        x = self.dropout2d(x)
         x = x.contiguous().view(-1, 192*2*2)
         x = self.relu(self.fc9(x))
+        x = self.dropout(x)
         x = self.relu(self.fc10(x))
+        x = self.dropout(x)
         len_probs = self.softmax(self.fc11_0(x))
         digit1_probs = self.softmax(self.fc11_1(x))
         digit2_probs = self.softmax(self.fc11_2(x))
